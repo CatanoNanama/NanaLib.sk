@@ -1,0 +1,38 @@
+function blockbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
+    add {_pre} to {_text::*} 
+    add "■" repeated {_i} time to {_text::*}
+    add "&7■" repeated {_m} - {_i} time to {_text::*}
+    add {_suf} to {_text::*}
+    return join {_text::*}
+function stickbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
+    add {_pre} to {_text::*} 
+    add "|" repeated {_i} time to {_text::*}
+    add "&7|" repeated {_m} - {_i} time to {_text::*}
+    add {_suf} to {_text::*}
+    return join {_text::*}
+
+function subtitle(p: players,t: text,time: timespan=1 second):
+    send title "" with subtitle {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
+function title(p: players,t: text,time: timespan=1 second):
+    send title {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
+
+function logging(t: objects):
+    send "&7[%now%]&8 %{_t::*}%" to ops
+    log "[%now%] %{_t::*}%" to file "debug.log"
+
+function dot(n: number) :: text:
+    set {_n::*} to "%{_n}%" parsed as "%number%.%number%"
+    if floor({_n}) is {_n}:
+        return "%{_n}%.00"
+    else:
+        if {_n::2} < 10:
+            return "%{_n::1}%.%{_n::2}%0"
+        else:
+            return "%{_n}%"
+
+function heart(p: player) :: text:
+ loop round({_p}'s health) time:
+  add "♥" to {_t::*}
+ loop {_p}'s max health-round({_p}'s health) time:
+  add "♡" to {_t::*}
+ return join {_t::*}

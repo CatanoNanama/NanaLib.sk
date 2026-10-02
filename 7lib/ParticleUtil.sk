@@ -1,0 +1,37 @@
+function circle(l: location, r: number, p: particle,v: vector=vector(0,-0.5,0)):
+    async run 0 tick later:
+        loop {_r}*16 times:
+            set {_v} to cylindrical vector radius {_r}, r(0, 360, false), height 0
+            set {_c} to {_l} ~ {_v}
+            force draw {_p} with velocity {_v} at {_c} for players
+            draw {_p} at {_c} for players
+function hcone(l: location, r: number, angle: number, p: particle):
+    async run 0 tick later:
+        # 円弧
+        add {_angle}*-1 to {_l}'s yaw
+        line({_l},{_r},{_p},"")
+        loop {_angle}*2 time:
+            add 1 to {_l}'s yaw 
+            force draw {_p} with velocity vector(0,0,0) {_r} meter forward {_l} for players
+        line({_l},{_r},{_p},"")
+
+function cone(l: location, r: number, angle: number, p: particle):
+    async run 0 tick later:
+        add {_angle}*-1 to {_l}'s yaw
+        loop {_angle}*2 time:
+            add 1 to {_l}'s yaw 
+            force draw {_p} with velocity vector(0,0,0) {_r} meter forward {_l} for players
+            line({_l},{_r},{_p},"")
+
+function sphere(l: location, r: number,p: particle) :: entities:
+    async run 0 tick later:
+        loop {_r}*32 time:
+            set {_v} to spherical vector radius {_r}, r(0, 360, false), r(-90,90,false)
+            set {_} to {_l} ~ {_v}
+            force draw {_p} with velocity vector(0,0,0) at {_} for players
+    return living entities in radius {_r} around {_l}
+function line(l: location,r: number,p: particle):
+    loop {_r}*2 time:
+        set {_v} to vector from yaw {_l}'s yaw and pitch {_l}'s pitch
+        set {_v} to {_v} * loop-number/2
+        force draw {_p} with velocity vector(0,0,0) at {_l}~{_v} for players

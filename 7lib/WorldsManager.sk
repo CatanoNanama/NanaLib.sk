@@ -1,0 +1,45 @@
+shoot:
+    gamemode of shooter is spectator
+    cancel event
+    
+spawn:
+    prevent entity from persisting
+pot:
+    cancel event
+item damage:
+    cancel event
+join:
+    reset(player)
+right click:
+    event-block is set
+    player's gamemode is not creative
+    if any:
+        event-block is chest
+        event-block is furnace
+        event-block is crafting table
+        event-block is brewing stand
+        event-block is dropper
+        event-block is dispenser
+        event-block is smoker
+        event-block is barrel
+        event-block is crafter
+        event-block is hopper
+        event-block is copper chest
+        event-block is waxed copper chest
+        event-block is chiseled bookshelf
+        event-block is oak shelf
+        event-block is trapped chest
+        "%type of event-block%" contain "bed"
+        event-block is decorated pot
+    then:
+        sound("block.iron_door.open",player,player)
+        send action bar "&fロックされています。" to player
+        spawn slime at event-block~vector(0,-0.7,0):
+            set slime's ai to false 
+            silence slime
+            make slime invisible
+            make slime invincible
+            set entity size of slime to 0
+            set scale attribute of slime to 2.5
+            add slime to team named "coll" 
+        cancel event

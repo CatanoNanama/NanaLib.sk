@@ -1,0 +1,4 @@
+server start:
+    command "/datapack disable vanilla"
+server stop:
+    command "/datapack enable vanilla"

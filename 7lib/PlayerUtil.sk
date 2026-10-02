@@ -1,0 +1,126 @@
+function addyp(t: player,y: number,p: number):
+    command "/execute as %{_t}% run tp @s ~ ~ ~ ~%{_y}% ~%{_p}%"
+
+function fakenametag(p: player):
+    spawn text display at {_p}
+    set {_e} to last spawned entity
+    add "nametag" to scoreboard tags of {_e}
+    set transformation translation of {_e} to vector from 0, 0.25, 0 
+    set billboard of {_e} to center
+    make {_e} visible through walls
+    set display scale of {_e} to vector from 0.75,0.75,0.75
+    do while {_p} is online:
+        wait tick
+        make {_e} ride {_p}
+    #    hide {_e} for players where [input is not {_p}]
+        set {_hpbar} to stickbar(health of {_p}/max health of {_p}*20,20,"&c","&r")
+        set text of {_e} to "%display name of {_p}%%nl%&cHP %{_hpbar}%"
+        {_e} is not alive
+        stop loop
+    kill {_e}
+function nametag(p: player):
+    spawn text display at {_p}
+    set {_e} to last spawned entity
+    add "nametag" to scoreboard tags of {_e}
+    set transformation translation of {_e} to vector from 0, 0.25, 0 
+    set billboard of {_e} to center
+    make {_e} visible through walls
+    set display scale of {_e} to vector from 0.75,0.75,0.75
+    do while {_p} is online:
+        wait tick
+        make {_e} ride {_p}
+    #    hide {_e} for players where [input is not {_p}]
+        set {_mpbar} to stickbar(metadata "mp" of {_p}/maxmp({_p})*20,20,"&b","&r")
+        set {_hpbar} to stickbar(health of {_p}/max health of {_p}*20,20,"&c","&r")
+        set text of {_e} to "%display name of {_p}%%nl%&cHP %{_hpbar}%%nl%&bMP %{_mpbar}%"
+        {_e} is not alive
+        stop loop
+    kill {_e}
+
+function gui(p: players,i: items,t: text, raw: integer=6):
+    set {_gui} to new chest inventory with {_raw} row named {_t}
+    loop {_i::*}:
+        set slot loop-counter - 1 of {_gui} to loop-value
+    wait tick
+    open {_gui} to {_p::*}
+
+function sound(sound: text, l: location,t: players,pitch: number=1,volume: number=1,seed: integer=-1):
+    if {_seed} is -1:
+        play sound {_sound} at volume {_volume} at pitch {_pitch} on {_l} for {_t::*}
+        stop
+    play sound {_sound} with seed {_seed} at volume {_volume} at pitch {_pitch} on {_l} for {_t::*}
+
+#Req:SkBee チーム読み取って敵を返すだけ adventureのみ
+function enemys(p: player) :: players:
+    if team of {_p} is not set:
+        return (all players where [gamemode of input is adventure]) where [input is not {_p}]
+    if allow friendly fire team state of {_t} is true:
+        return (all players where [gamemode of input is adventure]) where [input is not {_p}]
+    set {_t} to team of {_p}
+    loop all players:
+        gamemode of loop-player is adventure or survival
+        team of loop-player is not {_t}
+        add loop-player to {_e::*}
+    return {_e::*}
+#Req:SkBee 上とだいたい同じ プレイヤーの生存してる味方を返すだけの関数
+function teams(p: player) :: players:
+    set {_t} to team of {_p}
+    if {_t} is not set:
+        return {_p}
+    if  allow friendly fire team state of {_t} is true:
+        return {_p}
+    loop players:
+        gamemode of loop-player is survival or adventure
+        team of loop-player is {_t}
+        add loop-player to {_e::*}
+    return {_e::*}
+function reset(p: players, tp: boolean=true):
+    loop {_p::*}:
+        set {_p} to loop-value
+        clear {timer::%{_p}%::*}
+        clear fastboard of {_p}
+        set {_t} to text component from " &m====&r neves 0.0 &m====&r"
+        set color format of {_t} to {maxor1} 
+        set title of {_p}'s fastboard to {_t}
+       # command "/disgplayer %name of {_p}% Player %name of {_p}% setNameVisible false setArrowsSticking 0 setTallSelfDisguise HIDDEN setNotifyBar NONE"
+        clear scoreboard tags of {_p}
+        teleport {_p} to {spawn} if {_tp} is true
+        #clear {_p}'s inventory
+        #clear {_p}'s tab list header
+        clear potion effects of {_p}
+        set gamemode of {_p} to adventure
+        reset item cooldown of items for {_p}
+       # force {_p} to respawn
+        reset arrows stuck in {_p}
+        reset display name of {_p}
+        set saturation of {_p} to infinity value
+      #  clear metadata "mp" of {_p}
+        reset level progress of {_p} 
+        reset {_p}'s level
+        reset {_p}'s food level
+        loop all attribute types:
+            reset loop-value-2 attribute of {_p}
+        #set max health of {_p} to 20
+        heal {_p} by infinity value
+        set {_p}'s attack damage attribute to 1 # resetだと攻撃力高い気がするので個別対応
+        set {_p}'s fall damage multiplier attribute to 0.25
+        make {_p} visible
+        reveal {_p} for all players
+        set {_p}'s gravity to true
+        reset velocity of {_p}
+        #effects({_p}, slow falling, 0, 5 tick) #転移後の落下ダメージ防止
+        reset fall distance of {_p}
+        reset {_p}'s walk speed #attributeのspeedをresetするばあいうまく機能しないので
+        set health scale of all players to 20
+        effects({_p},night vision,0,eternity)
+        loop indices of {bossbars::%{_p}%::*}:
+            delbar({_p},loop-value-2)
+        #for ops
+        {_p} has permission "op"
+        add "admin" to scoreboard tags of {_p}
+
+function effects(target: players, p: potion effect type, tier: number=0, time: time span=0 tick):
+    loop {_target::*}:
+        set {_t} to loop-value
+#        add potion effect of {_p} of tier {_tier} without particles for {_time} to potion effects of {_t}
+        add ambient potion effect of {_p} {_tier} for {_time} to potion effects of {_t}

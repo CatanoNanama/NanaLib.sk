@@ -1,0 +1,94 @@
+#おおよそジャンプ
+function jump(e: entity,f: boolean=false):
+    {_e} is on ground
+    set y of velocity of {_e} to 0.42
+    set {_v} to vector in horizontal direction of {_e}/2.5 if {_e} is sprinting
+
+#Sk側でyaw/pitchを処理すると滑らかにならない為 渋々コマンドを使用
+
+#LibsDisguiseReq
+function disgspawn(l: location, e: entity type,disg: text) :: entity:
+    spawn {_e} at {_l}
+    set {_e} to last spawned entity
+    unequip {_e}' armor
+    set {_u} to "%uuid of {_e}%"
+    set {_t} to "disguuid %{_u}% %{_disg}%"
+    command {_t}
+    return {_e}
+
+function damage(p: entity,v: living entities,a: number, dmgtype: damage type=magic):
+    set {_s} to custom damage source:
+        set the damage type to {_dmgtype}
+        set the causing entity to {_p}
+        set the direct entity to {_p}
+        set the damage location to {_p}
+    damage {_v::*} by {_a} with {_s}
+
+function entities(p: player,l: location,r: number,target: entities=living entities, max: integer=size of players,exclude: entities=teams({_p})) :: entities:
+    add teams({_p}) to {_exclude::*}
+    add {_p} to {_exclude::*}
+
+    loop 1+{_max} nearest entity in radius {_r} of {_l}:
+        add loop-value to {_r::*}
+    remove {_exclude::*} from {_r::*}
+    return {_r::*}
+#guardianのcollisionをなんとかしないと非常にだるい また、guardianが攻撃を吸う 要改善 らしい
+function lasr(l1: entity, l2: entity, t: number=100):
+    {_l2} is set
+    spawn guardian 1.5 meter above {_l1}
+    set {_e} to last spawned guardian
+    make {_e} invisible
+    make {_e} silent
+    make {_e} vulnerable
+    loop {_t} time:
+        wait tick
+        teleport {_e} 1.5 meter above {_l1}
+        set target of {_e} to {_l2}
+    reset target of {_e}
+    
+    teleport {_e} 100 meter downward {_l1} 
+    kill {_e}
+
+
+function del(e: entities):
+    hide {_e::*} for players
+    teleport {_e::*} to location(0,0,0)
+    set {_e::*}'s health to 0
+    delete all entities where [input contains {_e::*}]
+    kill {_e::*}
+
+function PotionEffects(p: potion effect type, tier: number=0, time: time span=0 tick) :: potion effect:
+    return potion effect of {_p} {_tier} for {_time}
+
+function targetgetter(p: location, size: number, range: number, max: integer=1,n:boolean=false) :: entities:
+    loop {_max} time:
+        set {_i::*} to arrows where [input is on ground]
+        set {_i::*} to block displays
+        set {_i::*} to circle({_p}, 0.1, living entities)
+        add {_t::*} to {_i::*}
+        set {_v} to vector from yaw {_p}'s yaw and pitch {_p}'s pitch
+        set {_t} to ray trace from {_p} along {_v} with max distance {_range} with ray size {_size} while ignoring passable blocks while ignoring {_i::*}
+        set {_t} to raytrace hit entity of {_t}
+        if {_max} is 1:
+            return {_t} if {_t} is set
+        add {_t} to {_t::*} 
+    return {_t::*}
+function ray(p: entity,d: number, e: entities=displays, entity: boolean=true) :: location:
+    set {_t} to target entity of {_p} if {_entity} is true
+    set {_ray} to raytrace from {_p} with max distance {_d} while ignoring passable blocks while ignoring {_e::*}
+    set {_t} to raytrace hit block of {_ray} if {_t} is not set
+    set {_t} to {_p}'s head~vector in direction of {_p}*{_d} if {_t} is not set
+    return {_t}
+
+function circle(l: location, r:number, t: entities=entities, limit: number=3) :: entities:
+    loop {_t::*}:
+        set {_e} to loop-value's location
+        abs({_l}'s y - {_e}'s y) <= {_limit}
+        set {_e}'s y to {_l}'s y
+        distance between {_l} and {_e} <= {_r}
+        add loop-value to {_e::*}
+    return {_e::*}
+function clientglow(p: player, t: entity, d: time span):
+    make {_t} glow yellow for {_p} if {timer::glow%{_p}%_%{_t}%} is not set
+    set {timer::glow%{_p}%_%{_t}%} to ticks of {_d}
+    play sound "block.beacon.activate" at pitch 2 to {_p} if {timer::glow%{_p}%_%{_t}%} is not set

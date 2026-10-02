@@ -1,0 +1,91 @@
+function floorloc(l: location) :: location:
+    add 1 to {_l}'s y
+    set {_ray} to ray trace from {_l} along vector(0,-1,0) with max distance 320 while ignoring passable blocks while ignoring entities
+    set {_l} to ray trace hit block of {_ray}
+    add 0.6 to {_l}'s y
+    return {_l}
+function ray(p: entity,d: number, e: entities=displays, entity: boolean=true) :: location:
+    set {_t} to target entity of {_p} if {_entity} is true
+    set {_ray} to raytrace from {_p} with max distance {_d} while ignoring passable blocks while ignoring {_e::*}
+    set {_t} to raytrace hit block of {_ray} if {_t} is not set
+    set {_t} to {_p}'s head~vector in direction of {_p}*{_d} if {_t} is not set
+    return {_t}
+function r(n1: number, n2: number,int: boolean=true) :: number:
+    return random integer between {_n1} to {_n2} if {_int} is true
+    return random number between {_n1} to {_n2} if {_int} is false
+
+function circle(l: location, r:number, t: entities=entities, limit: number=3) :: entities:
+    loop {_t::*}:
+        set {_e} to loop-value's location
+        abs({_l}'s y - {_e}'s y) <= {_limit}
+        set {_e}'s y to {_l}'s y
+        distance between {_l} and {_e} <= {_r}
+        add loop-value to {_e::*}
+    return {_e::*}
+
+
+function d(l: location, l2: location) :: number:
+    return distance between {_l} and {_l2}
+function ray(a: location, b: location, step: number=0.5) :: locations:
+    set {_ax} to x-coordinate of {_a}
+    set {_ay} to y-coordinate of {_a}
+    set {_az} to z-coordinate of {_a}
+    set {_bx} to x-coordinate of {_b}
+    set {_by} to y-coordinate of {_b}
+    set {_bz} to z-coordinate of {_b}
+    set {_dx} to {_bx} - {_ax}
+    set {_dy} to {_by} - {_ay}
+    set {_dz} to {_bz} - {_az}
+    set {_len} to sqrt({_dx}^2 + {_dy}^2 + {_dz}^2)
+    set {_steps} to floor({_len} / {_step})
+    set {_locs::*} to {_a}
+    loop {_steps} times:
+        set {_t} to loop-number / {_steps}
+        set {_x} to {_ax} + {_dx} * {_t}
+        set {_y} to {_ay} + {_dy} * {_t}
+        set {_z} to {_az} + {_dz} * {_t}
+        add location at {_x}, {_y}, {_z} in world of {_a} to {_locs::*}
+    return {_locs::*}
+#曲がるver
+function cray(a: location, b: location, height: number = -2, step: number = 0.5) :: locations:
+    set {_ax} to x-coordinate of {_a}
+    set {_ay} to y-coordinate of {_a}
+    set {_az} to z-coordinate of {_a}
+    set {_bx} to x-coordinate of {_b}
+    set {_by} to y-coordinate of {_b}
+    set {_bz} to z-coordinate of {_b}
+    set {_cx} to ({_ax} + {_bx}) / 2
+    set {_cy} to (max({_ay}, {_by})) + {_height}
+    set {_cz} to ({_az} + {_bz}) / 2
+
+    set {_len} to distance between {_a} and {_b}
+    set {_steps} to floor({_len} / {_step})
+    set {_locs::*} to {_a}
+
+    loop {_steps} times:
+        set {_t} to loop-number / {_steps}
+        set {_invT} to 1 - {_t}
+        set {_x} to {_invT}^2 * {_ax} + 2 * {_invT} * {_t} * {_cx} + {_t}^2 * {_bx}
+        set {_y} to {_invT}^2 * {_ay} + 2 * {_invT} * {_t} * {_cy} + {_t}^2 * {_by}
+        set {_z} to {_invT}^2 * {_az} + 2 * {_invT} * {_t} * {_cz} + {_t}^2 * {_bz}
+        add location at {_x}, {_y}, {_z} in world of {_a} to {_locs::*}
+    
+    add {_b} to {_locs::*}
+    return {_locs::*}
+function spread(a: integer=1, r: integer=50, c: location=location(0,0,0)) :: locations:
+    loop {_a} times:
+        set {_v} to cylindrical vector r(0,{_r}), r(180,-180), 0
+        #set y-coord of {_l} to y coord of {_c}
+        set {_l} to {_c}~{_v}
+        set y-coord of {_l} to y coord of highest block at {_l}+0.5
+        if floorloc({_l}) is not set: #奈落の場合再生成
+            set {_l} to first element of spread(1,{_r},{_c})
+        add {_l} to {_l::*}
+    return {_l::*}
+
+function arrow_speed(a: entity) :: number:
+    set {_v} to velocity of {_a}
+    set {_x} to x of {_v}
+    set {_y} to y of {_v}
+    set {_z} to z of {_v}
+    return abs({_x})*arrow damage of {_a}+abs({_y})*arrow damage of {_a}+abs({_z})*arrow damage of {_a}

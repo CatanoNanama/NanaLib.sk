@@ -1,0 +1,93 @@
+function txtDisplay(t: text, l:location,d:time span=20 tick) :: entity:
+    spawn text display at {_l}
+    set {_e} to last spawned text display
+    set {_e}'s text to {_t}
+    set billboard of {_e} to center
+    make {_e} visible through walls
+    make {_e} not persist
+    set {textdisplay::%uuid of {_e}%} to {_d} later
+    return {_e}
+every tick:
+    set team option name tag visibility of all teams to never
+    loop indices of {textdisplay::*}:
+        set {_e} to  entity from uuid(loop-value)
+        delete {textdisplay::%loop-value%} if {_e} is not alive
+        set {_d} to {textdisplay::%loop-value%}
+        unix timestamp of now - unix timestamp of {_d} >= 0
+        run 0 tick later:
+            loop 5 time:
+                set transformation scale of {_e} to transformation scale of {_e}*0.9
+                wait tick
+            kill {_e}
+            {_e} is not alive
+            delete {textdisplay::%loop-value%}
+
+function bossbar(p: player,id: text, title: text, v: integer=100, c:color=white) :: bossbar:
+    if {bossbars::%{_p}%::%{_title}%} is set:
+        stop
+  #  replace all "&" in {_title} with "§"
+    set {_b} to bossbar named "%{_p}%.%{_title}%" with title colored {_title} with progress {_v}
+    set {bossbars::%{_p}%::%{_title}%} to {_b}
+    set bar players of {_b} to {_p}
+    set bar color of {_b} to {_c}
+    set bar style of {_b} to solid_bar
+    return {_b}
+
+function notify(p: players, title: text, time: integer=10, color: color=white, reverse:boolean=false):
+    loop {_p::*}:
+        set {_p%loop-counter-1%} to loop-value
+        async run 0 tick later:
+            if {_reverse} is true:
+                set {_b} to bossbar({_p%loop-counter-1%},{_title},{_title},0,{_color})
+                if {_b} is set:
+                    do while bar progress of {_b} is not 100:
+                        set {_} to (100 / {_time})
+                        progress({_b}, {_}*-1)
+                        sleep thread for tick
+                        stop loop if {_p%loop-counter-1%} is not online
+                        stop loop if {bossbars::%{_p%loop-counter-1%}%::%{_title}%} is not set
+                    set bar visibility of {_b} to false
+                    delete bossbar named "%{_p%loop-counter-1%}%.%{_title}%"
+                    delete {bossbars::%{_p%loop-counter-1%}%::%{_title}%}
+                else:
+                    set bar progress of {bossbars::%{_p%loop-counter-1%}%::%{_title}%} to 0
+            else:
+                set {_b} to bossbar({_p%loop-counter-1%},{_title},{_title},100,{_color})
+                if {_b} is set:
+                    do while bar progress of {_b} is not 0:
+                        set {_} to (100 / {_time})
+                        progress({_b}, {_})
+                        sleep thread for tick
+                        stop loop if {_p%loop-counter-1%} is not online
+                        stop loop if {bossbars::%{_p%loop-counter-1%}%::%{_title}%} is not set
+
+                    set bar visibility of {_b} to false
+                    delete bossbar named "%{_p%loop-counter-1%}%.%{_title}%"
+                    delete {bossbars::%{_p%loop-counter-1%}%::%{_title}%}
+                else:
+                    set bar progress of {bossbars::%{_p%loop-counter-1%}%::%{_title}%} to 100
+            cancel task with id current task id 
+            stop
+function delbar(p:players,title:text):
+    loop {_p::*}:
+        set {_p} to loop-value
+        delete bossbar named "%{_p}%.%{_title}%"
+        delete {bossbars::%{_p}%::%{_title}%}
+function progress(b: bossbar,progress: number):
+    remove {_progress} from bar progress of {_b}
+
+function dcircle(l: location,r: number,c: color=red,d: time span=20 tick, through: boolean=false):
+    set {_r} to {_r}*1.5
+    spawn text display at {_l}
+    set {_e} to last spawned text display
+    set {_t} to "<%{_c}%>◯" 
+    set {_e}'s text to colored {_t}
+    set transformation translation of {_e} to vector({_r}*-0.2,{_r}*-1.2 ,0) 
+    set billboard of {_e} to fixed
+    set {_e}'s scale to  vector({_r},{_r},1)*10
+    set color of {_e} to rgb(0,0,0,0)
+    make {_e} visible through walls if {_through} is true 
+    make {_e} not persist
+    set {_e}'s pitch to -90
+    wait {_d}
+    kill {_e}

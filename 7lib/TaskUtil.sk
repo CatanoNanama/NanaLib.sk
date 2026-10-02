@@ -1,0 +1,27 @@
+every tick async:
+    loop indices of {timer::*}:
+        add -1 to {timer::%loop-value%}
+        0 >= {timer::%loop-value%}
+        delete {timer::%loop-value%}
+    loop players:
+        loop indices of {timer::%uuid of loop-player%::*}:
+            if {timer::%uuid of loop-value-1%::%loop-value-2%} <= 0:
+                delete {timer::%uuid of loop-value-1%::%loop-value-2%}
+            else:
+                add -1 to {timer::%uuid of loop-value-1%::%loop-value-2%}
+    loop indices of {tasks::*}:
+        set {_task_id} to loop-value
+        set {_now} to unix timestamp of now
+        if {_now} >= {tasks::%{_task_id}%::maxtime}:
+            set {_end} to true
+        else:
+            set {_end} to evaluate "Nanatask_%{tasks::%{_task_id}%}%(""{_task_id}"")"
+            
+        if {_end} is true:
+            delete {tasks::%{_task_id}%}
+            delete {tasks::%{_task_id}%::*}
+
+function startTask(task_name: text, d: timespan, unique_id: text="%random uuid%"):
+    set {tasks::%{_unique_id}%} to {_task_name}
+    set {_expire_time} to {_d} later
+    set {tasks::%{_unique_id}%::maxtime} to unix timestamp of {_expire_time}

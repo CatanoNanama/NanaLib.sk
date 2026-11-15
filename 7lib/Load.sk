@@ -1,4 +1,6 @@
 server start:
-    command "/datapack disable vanilla"
+    execute command "/datapack disable vanilla"
+    if {lib::version} is not set:
+        set {lib::version} to "2.0"
 server stop:
-    command "/datapack enable vanilla"
+    execute command "/datapack enable vanilla"

@@ -1,0 +1,242 @@
+function dnotice(p: player, title: text, body: text, handler: text=""):
+    delete {dialog::%uuid of {_p}%::*}
+    open notice dialog to {_p}:
+        title: {_title}
+        body:
+            add plain message body:
+                contents: {_body}
+        action:
+            add callback action button:
+                label: "OK"
+                trigger:
+                    set {dialog::%uuid of event-player%::id} to "dnotice"
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dconfirm(p: player, title: text, body: text, handler: text, id: text="confirm"):
+    delete {dialog::%uuid of {_p}%::*}
+    open confirmation dialog to {_p}:
+        title: {_title}
+        body:
+            add plain message body:
+                contents: {_body}
+        actions:
+            add callback action button:
+                label: "&aはい"
+                trigger:
+                    set {dialog::%uuid of event-player%::result} to true
+                    set {dialog::%uuid of event-player%::id} to {_id}
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+            add callback action button:
+                label: "&cいいえ"
+                trigger:
+                    set {dialog::%uuid of event-player%::result} to false
+                    set {dialog::%uuid of event-player%::id} to {_id}
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dtext(p: player, title: text, label: text, initial: text, handler: text, id: text="text"):
+    delete {dialog::%uuid of {_p}%::*}
+    open multi action dialog to {_p}:
+        title: {_title}
+        inputs:
+            add text input:
+                key: "value"
+                label: {_label}
+                initial: {_initial}
+        actions:
+            add callback action button:
+                label: "決定"
+                trigger:
+                    set {dialog::%uuid of event-player%::value} to string tag "value" of event-nbt
+                    set {dialog::%uuid of event-player%::id} to {_id}
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dnum(p: player, title: text, label: text, min: number, max: number, step: number, initial: number, handler: text, id: text="num"):
+    delete {dialog::%uuid of {_p}%::*}
+    open multi action dialog to {_p}:
+        title: {_title}
+        inputs:
+            add number range input:
+                key: "value"
+                label: {_label}
+                start: {_min}
+                end: {_max}
+                step: {_step}
+                initial: {_initial}
+        actions:
+            add callback action button:
+                label: "決定"
+                trigger:
+                    set {dialog::%uuid of event-player%::value} to float tag "value" of event-nbt
+                    set {dialog::%uuid of event-player%::id} to {_id}
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dselect(p: player, title: text, label: text, options: texts, handler: text, id: text="select"):
+    delete {dialog::%uuid of {_p}%::*}
+    open multi action dialog to {_p}:
+        title: {_title}
+        inputs:
+            add single option input:
+                key: "value"
+                label: {_label}
+                options:
+                    loop {_options::*}:
+                        set {_v} to loop-value
+                        if loop-counter is 1:
+                            add options entry:
+                                id: {_v}
+                                display: {_v}
+                                initial: true
+                        else:
+                            add options entry:
+                                id: {_v}
+                                display: {_v}
+        actions:
+            add callback action button:
+                label: "決定"
+                trigger:
+                    set {dialog::%uuid of event-player%::value} to string tag "value" of event-nbt
+                    set {dialog::%uuid of event-player%::id} to {_id}
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dmenu(p: player, title: text, options: texts, handler: text, id: text="menu", columns: integer=2):
+    delete {dialog::%uuid of {_p}%::*}
+    open multi action dialog to {_p}:
+        title: {_title}
+        columns: {_columns}
+        actions:
+            loop {_options::*}:
+                set {_v} to loop-value
+                set {_n} to loop-counter
+                add callback action button:
+                    label: {_v}
+                    trigger:
+                        set {dialog::%uuid of event-player%::value} to {_v}
+                        set {dialog::%uuid of event-player%::index} to {_n}
+                        set {dialog::%uuid of event-player%::id} to {_id}
+                        if {_handler} is not "":
+                            parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dpage(p: player, title: text, options: texts, page: integer, handler: text, id: text="menu"):
+    delete {dialog::%uuid of {_p}%::*}
+    set {dialog::%uuid of {_p}%::page} to {_page}
+    set {_s} to ({_page} - 1) * 12 + 1
+    set {_e} to {_page} * 12
+    open multi action dialog to {_p}:
+        title: {_title}
+        actions:
+            loop {_options::*}:
+                loop-counter >= {_s}
+                loop-counter <= {_e}
+                set {_v} to loop-value
+                set {_n} to loop-counter
+                add callback action button:
+                    label: {_v}
+                    trigger:
+                        set {dialog::%uuid of event-player%::value} to {_v}
+                        set {dialog::%uuid of event-player%::index} to {_n}
+                        set {dialog::%uuid of event-player%::page} to {_page}
+                        set {dialog::%uuid of event-player%::id} to {_id}
+                        if {_handler} is not "":
+                            parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+            if {_page} > 1:
+                add callback action button:
+                    label: "前へ"
+                    trigger:
+                        dpage(event-player, {_title}, {_options::*}, {_page} - 1, {_handler}, {_id})
+            if {_e} < size of {_options::*}:
+                add callback action button:
+                    label: "次へ"
+                    trigger:
+                        dpage(event-player, {_title}, {_options::*}, {_page} + 1, {_handler}, {_id})
+
+function dsettings(p: player, title: text="設定", handler: text=""):
+    delete {dialog::%uuid of {_p}%::*}
+    set {_u} to uuid of {_p}
+    open multi action dialog to {_p}:
+        title: {_title}
+        inputs:
+            loop indices of {setdef::*}:
+                set {_k} to loop-value
+                if "%{_k}%" matches "[a-zA-Z0-9_]+":
+                    set {_t} to {setdef::%{_k}%::type}
+                    if {_t} is "bool":
+                        set {_c} to {setting::%{_u}%::%{_k}%}
+                        if {_c} is not set:
+                            set {_c} to {setdef::%{_k}%::def}
+                        if {_c} is not set:
+                            set {_c} to false
+                        add boolean input:
+                            key: {_k}
+                            label: {_k}
+                            initial: {_c}
+                    else if {_t} is "num":
+                        set {_c} to {setting::%{_u}%::%{_k}%}
+                        if {_c} is not set:
+                            set {_c} to {setdef::%{_k}%::def}
+                        if {_c} is not set:
+                            set {_c} to {setdef::%{_k}%::min}
+                        add number range input:
+                            key: {_k}
+                            label: {_k}
+                            start: {setdef::%{_k}%::min}
+                            end: {setdef::%{_k}%::max}
+                            step: {setdef::%{_k}%::step}
+                            initial: {_c}
+                    else if {_t} is "opt":
+                        set {_c} to {setting::%{_u}%::%{_k}%}
+                        if {_c} is not set:
+                            set {_c} to {setdef::%{_k}%::def}
+                        add single option input:
+                            key: {_k}
+                            label: {_k}
+                            options:
+                                loop {setdef::%{_k}%::options::*}:
+                                    set {_v} to loop-value-2
+                                    if {_v} is {_c}:
+                                        add options entry:
+                                            id: {_v}
+                                            display: {_v}
+                                            initial: true
+                                    else:
+                                        add options entry:
+                                            id: {_v}
+                                            display: {_v}
+        actions:
+            add callback action button:
+                label: "決定"
+                trigger:
+                    loop indices of {setdef::*}:
+                        set {_k} to loop-value
+                        if "%{_k}%" matches "[a-zA-Z0-9_]+":
+                            set {_t} to {setdef::%{_k}%::type}
+                            if {_t} is "bool":
+                                set {_s} to string tag {_k} of event-nbt
+                                if {_s} is "true":
+                                    set {_b} to true
+                                else if {_s} is "false":
+                                    set {_b} to false
+                                else:
+                                    set {_b} to boolean tag {_k} of event-nbt
+                                set {setting::%uuid of event-player%::%{_k}%} to {_b}
+                                set {dialog::%uuid of event-player%::%{_k}%} to {_b}
+                            else if {_t} is "num":
+                                set {_n} to float tag {_k} of event-nbt
+                                set {_n} to clamp({_n}, {setdef::%{_k}%::min}, {setdef::%{_k}%::max})
+                                set {setting::%uuid of event-player%::%{_k}%} to {_n}
+                                set {dialog::%uuid of event-player%::%{_k}%} to {_n}
+                            else if {_t} is "opt":
+                                set {_s} to string tag {_k} of event-nbt
+                                set {setting::%uuid of event-player%::%{_k}%} to {_s}
+                                set {dialog::%uuid of event-player%::%{_k}%} to {_s}
+                    set {dialog::%uuid of event-player%::id} to "dsettings"
+                    if {_handler} is not "":
+                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+
+function dval(p: player, key: text) :: object:
+    return {dialog::%uuid of {_p}%::%{_key}%}

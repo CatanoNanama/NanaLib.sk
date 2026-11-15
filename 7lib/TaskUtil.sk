@@ -9,6 +9,14 @@ every tick async:
                 delete {timer::%uuid of loop-value-1%::%loop-value-2%}
             else:
                 add -1 to {timer::%uuid of loop-value-1%::%loop-value-2%}
+    loop indices of {textdisplay::*}:
+        set {_e} to entity from uuid(loop-value)
+        delete {textdisplay::%loop-value%} if {_e} is not alive
+        set {_d} to {textdisplay::%loop-value%}
+        unix timestamp of now - unix timestamp of {_d} >= 0
+        kill {_e}
+        {_e} is not alive
+        delete {textdisplay::%loop-value%}
     loop indices of {tasks::*}:
         set {_task_id} to loop-value
         set {_now} to unix timestamp of now
@@ -16,12 +24,33 @@ every tick async:
             set {_end} to true
         else:
             set {_end} to evaluate "Nanatask_%{tasks::%{_task_id}%}%(""{_task_id}"")"
-            
+        if {tasks::%{_task_id}%::owner} is set:
+            set {_ou} to {tasks::%{_task_id}%::owner} parsed as uuid
+            if {_ou} is set:
+                set {_op} to offlineplayer("%{_ou}%", false)
+                if {_op} is set:
+                    if player("%{_ou}%") is not set:
+                        set {_end} to true
         if {_end} is true:
+            if {tasks::%{_task_id}%::end} is set:
+                set {_x} to evaluate "%{tasks::%{_task_id}%::end}%(""%{_task_id}%"")"
             delete {tasks::%{_task_id}%}
             delete {tasks::%{_task_id}%::*}
 
-function startTask(task_name: text, d: timespan, unique_id: text="%random uuid%"):
+function startTask(task_name: text, d: timespan, unique_id: text="%random uuid%", owner: text="", end: text=""):
     set {tasks::%{_unique_id}%} to {_task_name}
     set {_expire_time} to {_d} later
     set {tasks::%{_unique_id}%::maxtime} to unix timestamp of {_expire_time}
+    if {_owner} is not "":
+        set {tasks::%{_unique_id}%::owner} to {_owner}
+    if {_end} is not "":
+        set {tasks::%{_unique_id}%::end} to {_end}
+
+function endTask(owner: text):
+    loop indices of {tasks::*}:
+        set {_task_id} to loop-value
+        if {tasks::%{_task_id}%::owner} is {_owner}:
+            if {tasks::%{_task_id}%::end} is set:
+                set {_x} to evaluate "%{tasks::%{_task_id}%::end}%(""%{_task_id}%"")"
+            delete {tasks::%{_task_id}%}
+            delete {tasks::%{_task_id}%::*}

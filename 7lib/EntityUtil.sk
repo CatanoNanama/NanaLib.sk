@@ -1,38 +1,117 @@
-#おおよそジャンプ
-function jump(e: entity,f: boolean=false):
-    {_e} is on ground
-    set y of velocity of {_e} to 0.42
-    set {_v} to vector in horizontal direction of {_e}/2.5 if {_e} is sprinting
+function del(e: entities):
+    hide {_e::*} for Players
+    set {_e::*}'s health to -1000
+    {_e::*} is alive
+    delete entities where [{_e::*} contain input]
 
-#Sk側でyaw/pitchを処理すると滑らかにならない為 渋々コマンドを使用
-
-#LibsDisguiseReq
 function disgspawn(l: location, e: entity type,disg: text) :: entity:
     spawn {_e} at {_l}
     set {_e} to last spawned entity
     unequip {_e}' armor
     set {_u} to "%uuid of {_e}%"
     set {_t} to "disguuid %{_u}% %{_disg}%"
-    command {_t}
+    execute command {_t}
     return {_e}
 
-function damage(p: entity,v: living entities,a: number, dmgtype: damage type=magic):
+function jump(e: entity,f: boolean=false):
+    {_e} is on ground
+    charging attack of {_e} is not true
+    set y of velocity of {_e} to 0.42
+    set {_v} to vector in horizontal direction of {_e}/2.5
+    {_f} is true
+    set {_v}'s yaw to 90
+    set {_v}'s yaw to -90 if r(1,0) is 0
+    add {_v} to velocity of {_e}
+
+using damage sources
+function damage(p: entity,v: living entities,a: number):
+    if "%{_p}%" is "arrow":
+        set {_s} to custom damage source:
+            set the damage type to arrow
+            set the causing entity to shooter of {_p}
+            set the direct entity to {_p}
+            set the damage location to {_p}
+        damage {_v::*} by {_a} with {_s}
+        stop
     set {_s} to custom damage source:
-        set the damage type to {_dmgtype}
+        set the damage type to magic
         set the causing entity to {_p}
         set the direct entity to {_p}
         set the damage location to {_p}
     damage {_v::*} by {_a} with {_s}
 
-function entities(p: player,l: location,r: number,target: entities=living entities, max: integer=size of players,exclude: entities=teams({_p})) :: entities:
+function damageArrow(p: player,v: living entities,a: number):
+    set {_s} to custom damage source:
+        set the damage type to mob projectile
+        set the causing entity to {_p}
+        set the direct entity to {_p}
+    damage {_v::*} by {_a}/2 with {_s}
+
+function itemEffects(p: potion effect type, tier: number=0, time: time span=0 tick) :: potion effect:
+    return potion effect of {_p} {_tier} for {_time}
+
+function entities(p: player,l: location,r: number,target: entities=living entities, max: integer=size of Players,exclude: entities=teams({_p})) :: entities:
     add teams({_p}) to {_exclude::*}
     add {_p} to {_exclude::*}
-
+    add displays to {_exclude::*}
     loop 1+{_max} nearest entity in radius {_r} of {_l}:
         add loop-value to {_r::*}
     remove {_exclude::*} from {_r::*}
     return {_r::*}
-#guardianのcollisionをなんとかしないと非常にだるい また、guardianが攻撃を吸う 要改善 らしい
+
+function coneEntities(p: entity, l: location, r: number, angle: number, target: entities, exclude: entities) :: entities:
+    set {_dir} to vector from yaw yaw of {_l} and pitch pitch of {_l}
+    set {_dir} to normalized {_dir}
+    set {_halfAngle} to {_angle} / 2
+    set {_cosThreshold} to cos({_halfAngle})
+    loop {_target::*}:
+        set {_e} to loop-value
+        {_e} is not {_p}
+        loop-value is not in {_exclude::*}
+        d({_l}, {_e}'s location) <= {_r}
+        set {_toTarget} to vector between {_l} and {_e}'s location
+        set {_toTarget} to normalized {_toTarget}
+        set {_dot} to {_dir} dot {_toTarget}
+        {_dot} >= {_cosThreshold}
+        add {_e} to {_e::*}
+    return {_e::*}
+
+function targetgetter(p: location, size: number, range: number, max: integer=1,n:boolean=false) :: entities:
+    loop {_max} time:
+        set {_i::*} to arrows where [input is on ground]
+        set {_i::*} to displays
+        set {_i::*} to circle({_p}, 0.1, living entities)
+        add {_t::*} to {_i::*}
+        set {_v} to vector from yaw {_p}'s yaw and pitch {_p}'s pitch
+        set {_t} to ray trace from {_p} along {_v} with max distance {_range} with ray size {_size} while ignoring passable blocks while ignoring {_i::*}
+        set {_t} to raytrace hit entity of {_t}
+        if {_max} is 1:
+            return {_t} if {_t} is set
+        add {_t} to {_t::*}
+    if {_t::*} is not set:
+        {_n} is true
+        notify({_p}, "&c対象が見つかりませんでした",30, red)
+        play sound "entity.villager.no" to {_p} at {_p}
+        stop
+    return {_t::*}
+
+function clientglow(p: player, t: entity, d: time span, c: color=yellow):
+    make {_t} glow {_c} for {_p} if {timer::glow%{_p}%_%{_t}%} is not set
+    set {timer::glow%{_p}%_%{_t}%} to ticks of {_d}
+    play sound "block.beacon.activate" at pitch 2 to {_p} if {timer::glow%{_p}%_%{_t}%} is not set
+
+function endermanvision(target: player,duration: time span=20 tick):
+    spawn enderman below {_target}
+    set {_e} to last spawned entity
+    set camera of {_target} to entity id (entity id of {_e})
+    silence {_e}
+    set {_e}'s ai to false
+    hide {_e} for Players
+    del({_e})
+
+    wait {_duration}
+    set camera of {_target} to entity id (entity id of {_target})
+
 function lasr(l1: entity, l2: entity, t: number=100):
     {_l2} is set
     spawn guardian 1.5 meter above {_l1}
@@ -45,50 +124,45 @@ function lasr(l1: entity, l2: entity, t: number=100):
         teleport {_e} 1.5 meter above {_l1}
         set target of {_e} to {_l2}
     reset target of {_e}
-    
-    teleport {_e} 100 meter downward {_l1} 
+    teleport {_e} 100 meter downward {_l1}
     kill {_e}
 
+function sit(p: player, l: location) :: entity:
+    if vehicle of {_p} is set:
+        send "&cすでに座ってます!" to {_p}
+        stop
+    add 180 to yaw of {_l}
+    spawn a item display at {_l}
+    set name of last spawned item display to "s"
+    set {_e} to spawned item display
+    make {_p} ride {_e}
+    async run 0 tick later:
+        while {_e} is set:
+            wait 5 tick
+            passenger of {_e} is not set
+            kill {_e}
+            delete {_e}
+            clear {_e}
+    return {_e}
 
-function del(e: entities):
-    hide {_e::*} for players
-    teleport {_e::*} to location(0,0,0)
-    set {_e::*}'s health to 0
-    delete all entities where [input contains {_e::*}]
-    kill {_e::*}
+function fakedeath(e: player):
+    fake death of entity with id entity id of {_e} for players
+    set skin of {_e} to skin of {_e}'s name
+    hide {_e}
+    effects({_e}, speed, 8, 8 second)
+    effects({_e}, jump boost, 2, 8 second)
+    effects({_e}, weakness, 16, 8 second)
+    set item cooldown of all items for {_e} to 8 second
+    wait 8 second
+    reveal {_e}
 
-function PotionEffects(p: potion effect type, tier: number=0, time: time span=0 tick) :: potion effect:
-    return potion effect of {_p} {_tier} for {_time}
-
-function targetgetter(p: location, size: number, range: number, max: integer=1,n:boolean=false) :: entities:
-    loop {_max} time:
-        set {_i::*} to arrows where [input is on ground]
-        set {_i::*} to block displays
-        set {_i::*} to circle({_p}, 0.1, living entities)
-        add {_t::*} to {_i::*}
-        set {_v} to vector from yaw {_p}'s yaw and pitch {_p}'s pitch
-        set {_t} to ray trace from {_p} along {_v} with max distance {_range} with ray size {_size} while ignoring passable blocks while ignoring {_i::*}
-        set {_t} to raytrace hit entity of {_t}
-        if {_max} is 1:
-            return {_t} if {_t} is set
-        add {_t} to {_t::*} 
-    return {_t::*}
-function ray(p: entity,d: number, e: entities=displays, entity: boolean=true) :: location:
-    set {_t} to target entity of {_p} if {_entity} is true
-    set {_ray} to raytrace from {_p} with max distance {_d} while ignoring passable blocks while ignoring {_e::*}
-    set {_t} to raytrace hit block of {_ray} if {_t} is not set
-    set {_t} to {_p}'s head~vector in direction of {_p}*{_d} if {_t} is not set
-    return {_t}
-
-function circle(l: location, r:number, t: entities=entities, limit: number=3) :: entities:
-    loop {_t::*}:
-        set {_e} to loop-value's location
-        abs({_l}'s y - {_e}'s y) <= {_limit}
-        set {_e}'s y to {_l}'s y
-        distance between {_l} and {_e} <= {_r}
-        add loop-value to {_e::*}
-    return {_e::*}
-function clientglow(p: player, t: entity, d: time span):
-    make {_t} glow yellow for {_p} if {timer::glow%{_p}%_%{_t}%} is not set
-    set {timer::glow%{_p}%_%{_t}%} to ticks of {_d}
-    play sound "block.beacon.activate" at pitch 2 to {_p} if {timer::glow%{_p}%_%{_t}%} is not set
+function heal(e: entities,a: number):
+    loop {_e::*}:
+        set {_e} to loop-value
+        set {_l} to {_e}'s location
+        set {_y} to yaw of {_e} + r(45,-45)
+        set {_p} to pitch of {_e} + r(45,-45)
+        set {_l} to {_l} ~ spherical vector 1 , {_y} , {_p}
+        add 1.5 to {_l}'s y coord
+        heal {_e} by abs({_a}*0.5) heart
+        txtDisplay("&a%{_a}%♥",{_l})

@@ -1,3 +1,4 @@
+
 shoot:
     gamemode of shooter is spectator
     cancel event
@@ -43,3 +44,42 @@ right click:
             set scale attribute of slime to 2.5
             add slime to team named "coll" 
         cancel event
+command /skeffect <string>:
+    permission: op
+    trigger:
+        parse effect arg from player
+command /skull <Offline Player>:
+    permission: op
+    trigger:
+        give arg's skull to player
+command /send <player> <text>:
+    permission: op
+    trigger:
+        send arg-1 to server arg-2
+command /hat:
+    trigger:
+        if tool of player is air:
+            send "&4[remilib]&r &cアイテムをメインハンドにもって実行してください"
+            stop
+        if helmet of player is air:
+            set helmet of player to tool of player
+            set tool of player to air
+            send "&4[remilib]&r &aメインハンドのアイテムをなんか頭防具枠に移動しました"
+        else:
+            send "&4[remilib]&r &c頭防具枠を空にしてください"
+command /skr <text="scripts">:
+    permission: op
+    trigger:
+        if command sender is console:
+            execute command "/sk reload %arg%"
+            stop
+        execute player command "/sk reload %arg%"
+command /sit [<text>]:
+    trigger:
+        vehicle is not set
+        spawn block display at floorloc(player)
+        set {_e} to last spawned entity
+        make player ride {_e}
+        do while {_e}' passenger is set:
+            wait 25 tick
+        kill {_e}

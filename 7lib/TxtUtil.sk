@@ -1,25 +1,3 @@
-function blockbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
-    add {_pre} to {_text::*} 
-    add "■" repeated {_i} time to {_text::*}
-    add "&7■" repeated {_m} - {_i} time to {_text::*}
-    add {_suf} to {_text::*}
-    return join {_text::*}
-function stickbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
-    add {_pre} to {_text::*} 
-    add "|" repeated {_i} time to {_text::*}
-    add "&7|" repeated {_m} - {_i} time to {_text::*}
-    add {_suf} to {_text::*}
-    return join {_text::*}
-
-function subtitle(p: players,t: text,time: timespan=1 second):
-    send title "" with subtitle {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
-function title(p: players,t: text,time: timespan=1 second):
-    send title {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
-
-function logging(t: objects):
-    send "&7[%now%]&8 %{_t::*}%" to ops
-    log "[%now%] %{_t::*}%" to file "debug.log"
-
 function dot(n: number) :: text:
     set {_n::*} to "%{_n}%" parsed as "%number%.%number%"
     if floor({_n}) is {_n}:
@@ -30,9 +8,116 @@ function dot(n: number) :: text:
         else:
             return "%{_n}%"
 
+function smallnum(number: number) :: text:
+    set {_t} to "%{_number}%"
+    replace "1" in {_t} with "¹"
+    replace "2" in {_t} with "²"
+    replace "3" in {_t} with "³"
+    replace "4" in {_t} with "⁴"
+    replace "5" in {_t} with "⁵"
+    replace "6" in {_t} with "⁶"
+    replace "7" in {_t} with "⁷"
+    replace "8" in {_t} with "⁸"
+    replace "9" in {_t} with "⁹"
+    replace "0" in {_t} with "⁰"
+    replace "." in {_t} with "･"
+    return {_t}
+
+function signed(n: number) :: text:
+    if {_n} < 0:
+        return "-%dot({_n} * -1)%"
+    if {_n} > 0:
+        return "+%dot({_n})%"
+    return dot({_n})
+
+function blockbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
+    add {_pre} to {_text::*}
+    add "■" repeated {_i} time to {_text::*}
+    add "&7■" repeated {_m} - {_i} time to {_text::*}
+    add {_suf} to {_text::*}
+    return join {_text::*}
+
+function stickbar(i: integer,m: integer, pre: text="&f[&b",suf: text="&f]") :: text:
+    add {_pre} to {_text::*}
+    add "|" repeated {_i} time to {_text::*}
+    add "&7|" repeated {_m} - {_i} time to {_text::*}
+    add {_suf} to {_text::*}
+    return join {_text::*}
+
 function heart(p: player) :: text:
- loop round({_p}'s health) time:
-  add "♥" to {_t::*}
- loop {_p}'s max health-round({_p}'s health) time:
-  add "♡" to {_t::*}
- return join {_t::*}
+    loop round({_p}'s health) time:
+        add "♥" to {_t::*}
+    loop {_p}'s max health-round({_p}'s health) time:
+        add "♡" to {_t::*}
+    return join {_t::*}
+
+function deco(t: text) :: text:
+    return "=== %{_t}% ==="
+
+function decolore(k: text, v: object) :: text:
+    return "・%{_k}%: %{_v}%"
+
+function booltext(b: boolean) :: text:
+    return "&a有効" if {_b} is true
+    return "&c無効"
+
+function title(p: players,t: text,time: timespan=1 second):
+    send title {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
+
+function subtitle(p: players,t: text,time: timespan=1 second):
+    send title "" with subtitle {_t} to {_p::*} for {_time} with fadein 0 tick and fade out 0 tick
+
+function clicktext(t: text, hover: text, cmd: text) :: text comp:
+    set {_c} to text component from {_t}
+    set hover event of {_c} to a new hover event showing {_hover}
+    set click event of {_c} to a new click event to run command {_cmd}
+    return {_c}
+
+function abiicon(i: item) :: text comps:
+    set {_i} to coal if {_i} is polished blackstone button
+    set {_k} to "%minecraft key of {_i}%"
+    replace all "minecraft:" in {_k} with ""
+    if {_k} is "skeleton_skull":
+        set {_c} to object text component with player head from "MHF_Skeleton"
+        set hover event of {_c} to a new hover event showing {_i}
+        add {_c} to {_o::*}
+        return {_o::*}
+    set {_m} to item model of {_i}
+    if {_m} is set:
+        replace all "minecraft:" in {_m} with ""
+        set {_mb::*} to {_m} split at "/"
+        if last element of {_mb::*} is not {_k}:
+            if {_m} contains "/":
+                set {_s} to {_m}
+            else:
+                set {_s} to "item/%{_m}%"
+    if {_s} is not set:
+        if type of {_i} is a block:
+            set {_s} to "block/%{_k}%"
+        else:
+            set {_s} to "item/%{_k}%"
+    switch {_s}:
+        case "block/cauldron" -> set {_s} to "item/cauldron"
+        case "block/anvil" -> set {_s} to "block/anvil_top"
+        case "block/piston" -> set {_s} to "block/piston_top"
+        case "block/dispenser" -> set {_s} to "block/dispenser_front"
+        case "block/bell" -> set {_s} to "item/bell"
+        case "block/structure_void" -> set {_s} to "item/structure_void"
+        case "item/crossbow" -> set {_s} to "item/crossbow_standby"
+    if {_s} starts with "item/":
+        set {_c} to object text component with atlas "minecraft:items" and with sprite {_s}
+    else:
+        set {_c} to object text component with sprite {_s}
+    set hover event of {_c} to a new hover event showing {_i}
+    add {_c} to {_o::*}
+    return {_o::*}
+
+function split(t: text) :: texts:
+    set {_t::*} to split {_t} at nl
+    return {_t::*}
+
+function logging(t: objects):
+    send "&7[%now%]&8 %{_t::*}%" to ops
+    log "[%now%] %{_t::*}%" to file "debug.log"
+    if {lib::webhook} is set:
+        send uncolored "`[%now%] %{_t::*}%`" as webhook to {lib::webhook}

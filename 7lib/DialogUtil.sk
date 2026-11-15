@@ -11,7 +11,9 @@ function dnotice(p: player, title: text, body: text, handler: text=""):
                 trigger:
                     set {dialog::%uuid of event-player%::id} to "dnotice"
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dconfirm(p: player, title: text, body: text, handler: text, id: text="confirm"):
     delete {dialog::%uuid of {_p}%::*}
@@ -27,14 +29,18 @@ function dconfirm(p: player, title: text, body: text, handler: text, id: text="c
                     set {dialog::%uuid of event-player%::result} to true
                     set {dialog::%uuid of event-player%::id} to {_id}
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
             add callback action button:
                 label: "&cいいえ"
                 trigger:
                     set {dialog::%uuid of event-player%::result} to false
                     set {dialog::%uuid of event-player%::id} to {_id}
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dtext(p: player, title: text, label: text, initial: text, handler: text, id: text="text"):
     delete {dialog::%uuid of {_p}%::*}
@@ -52,7 +58,9 @@ function dtext(p: player, title: text, label: text, initial: text, handler: text
                     set {dialog::%uuid of event-player%::value} to string tag "value" of event-nbt
                     set {dialog::%uuid of event-player%::id} to {_id}
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dnum(p: player, title: text, label: text, min: number, max: number, step: number, initial: number, handler: text, id: text="num"):
     delete {dialog::%uuid of {_p}%::*}
@@ -73,7 +81,9 @@ function dnum(p: player, title: text, label: text, min: number, max: number, ste
                     set {dialog::%uuid of event-player%::value} to float tag "value" of event-nbt
                     set {dialog::%uuid of event-player%::id} to {_id}
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dselect(p: player, title: text, label: text, options: texts, handler: text, id: text="select"):
     delete {dialog::%uuid of {_p}%::*}
@@ -102,7 +112,9 @@ function dselect(p: player, title: text, label: text, options: texts, handler: t
                     set {dialog::%uuid of event-player%::value} to string tag "value" of event-nbt
                     set {dialog::%uuid of event-player%::id} to {_id}
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dmenu(p: player, title: text, options: texts, handler: text, id: text="menu", columns: integer=2):
     delete {dialog::%uuid of {_p}%::*}
@@ -120,7 +132,9 @@ function dmenu(p: player, title: text, options: texts, handler: text, id: text="
                         set {dialog::%uuid of event-player%::index} to {_n}
                         set {dialog::%uuid of event-player%::id} to {_id}
                         if {_handler} is not "":
-                            parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                            set {_f} to function named {_handler}
+                            if {_f} is set:
+                                run {_f} with arguments event-player
 
 function dpage(p: player, title: text, options: texts, page: integer, handler: text, id: text="menu"):
     delete {dialog::%uuid of {_p}%::*}
@@ -143,7 +157,9 @@ function dpage(p: player, title: text, options: texts, page: integer, handler: t
                         set {dialog::%uuid of event-player%::page} to {_page}
                         set {dialog::%uuid of event-player%::id} to {_id}
                         if {_handler} is not "":
-                            parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                            set {_f} to function named {_handler}
+                            if {_f} is set:
+                                run {_f} with arguments event-player
             if {_page} > 1:
                 add callback action button:
                     label: "前へ"
@@ -236,7 +252,9 @@ function dsettings(p: player, title: text="設定", handler: text=""):
                                 set {dialog::%uuid of event-player%::%{_k}%} to {_s}
                     set {dialog::%uuid of event-player%::id} to "dsettings"
                     if {_handler} is not "":
-                        parse effect "%{_handler}%(player(""%uuid of event-player%""))"
+                        set {_f} to function named {_handler}
+                        if {_f} is set:
+                            run {_f} with arguments event-player
 
 function dval(p: player, key: text) :: object:
     return {dialog::%uuid of {_p}%::%{_key}%}

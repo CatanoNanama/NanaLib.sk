@@ -12,15 +12,15 @@ function txtDisplay(t: text, l: location, d: time span=20 tick, opa: number=-73)
 function bossbar(p: player, id: text, title: text, v: integer=100, c: color=white) :: bossbar:
     if {bossbars::%{_p}%::%{_title}%} is set:
         stop
-    set {_b} to bossbar named "%{_p}%.%{_title}%" with title colored {_title} with progress {_v}
+    set {_b} to a {_c} boss bar titled colored {_title}
     set {bossbars::%{_p}%::%{_title}%} to {_b}
-    set bar players of {_b} to {_p}
-    set bar color of {_b} to {_c}
-    set bar style of {_b} to solid_bar
+    add {_p} to viewers of {_b}
+    set style of {_b} to solid
+    progress({_b}, {_v})
     return {_b}
 
 function progress(b: bossbar, progress: integer):
-    set bar progress of {_b} to {_progress}
+    set progress of {_b} to {_progress} / 100
 
 function notify(p: player, title: text, time: integer=10, color: color=white, reverse: boolean=false):
     if {_reverse} is true:
@@ -32,11 +32,10 @@ function notify(p: player, title: text, time: integer=10, color: color=white, re
                 wait tick
                 stop loop if {_p} is not online
                 stop loop if {bossbars::%{_p}%::%{_title}%} is not set
-            set bar visibility of {_b} to false
-            delete bossbar named "%{_p}%.%{_title}%"
+            remove {_p} from viewers of {_b}
             delete {bossbars::%{_p}%::%{_title}%}
         else:
-            set bar progress of {bossbars::%{_p}%::%{_title}%} to 0
+            progress({bossbars::%{_p}%::%{_title}%}, 0)
     else:
         set {_b} to bossbar({_p}, {_title}, {_title}, 100, {_color})
         if {_b} is set:
@@ -46,16 +45,15 @@ function notify(p: player, title: text, time: integer=10, color: color=white, re
                 wait tick
                 stop loop if {_p} is not online
                 stop loop if {bossbars::%{_p}%::%{_title}%} is not set
-            set bar visibility of {_b} to false
-            delete bossbar named "%{_p}%.%{_title}%"
+            remove {_p} from viewers of {_b}
             delete {bossbars::%{_p}%::%{_title}%}
         else:
-            set bar progress of {bossbars::%{_p}%::%{_title}%} to 100
+            progress({bossbars::%{_p}%::%{_title}%}, 100)
 
 function delbar(p: players, title: text):
     loop {_p::*}:
         set {_p} to loop-value
-        delete bossbar named "%{_p}%.%{_title}%"
+        remove {_p} from viewers of {bossbars::%{_p}%::%{_title}%}
         delete {bossbars::%{_p}%::%{_title}%}
 
 function dcircle(l: location, r: number, c: color=red, d: time span=20 tick, through: boolean=false):
@@ -99,10 +97,10 @@ function magic(target: entity, l: location, r: number, c: color=red, d: time spa
 
 function bcastbar(t: text, time: integer):
     set {_id} to "%random uuid%"
-    set {_b} to bossbar named "bcast.%{_id}%" with title colored {_t} with progress 100
-    set bar players of {_b} to all players
-    set bar color of {_b} to white
-    set bar style of {_b} to solid_bar
+    set {_b} to a white boss bar titled colored {_t}
+    add all players to viewers of {_b}
+    set style of {_b} to solid
+    progress({_b}, 100)
     set {bcastbar::%{_id}%} to {_b}
     set {bcastbar::%{_id}%::time} to {_time}
     set {bcastbar::%{_id}%::left} to {_time}
@@ -114,8 +112,7 @@ function Nanatask_bcastbar(id: text) :: boolean:
         return true
     remove 1 from {bcastbar::%{_id}%::left}
     if {bcastbar::%{_id}%::left} <= 0:
-        set bar visibility of {_b} to false
-        delete bossbar named "bcast.%{_id}%"
+        remove all players from viewers of {_b}
         delete {bcastbar::%{_id}%}
         delete {bcastbar::%{_id}%::*}
         return true

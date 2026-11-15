@@ -92,7 +92,10 @@ function cray(a: location, b: location, height: number = -2, step: number = 0.5)
     return {_locs::*}
 
 function conedata(l: location, r: number, angle: number, step: number=0.5) :: locations:
-    set {_o} to location at x-coordinate of {_l}, y-coordinate of {_l}, z-coordinate of {_l} in world of {_l}
+    set {_x} to x-coordinate of {_l}
+    set {_y} to y-coordinate of {_l}
+    set {_z} to z-coordinate of {_l}
+    set {_o} to location at {_x}, {_y}, {_z} in world of {_l}
     set {_o}'s yaw to yaw of {_l}
     set {_o}'s pitch to pitch of {_l}
     set {_ox} to x-coordinate of {_o}
@@ -126,7 +129,8 @@ function conedata(l: location, r: number, angle: number, step: number=0.5) :: lo
         loop {_m} times:
             set {_s} to {_j} * {_step}
             set {_k} to ceil({_r} / {_s})
-            if mod({_i}, {_k}) is 0 or {_i} is {_n}:
+            set {_mod} to mod({_i}, {_k})
+            if {_mod} is 0 or {_i} is {_n}:
                 add location at {_ox} + {_vx} * {_s}, {_oy} + {_vy} * {_s}, {_oz} + {_vz} * {_s} in world of {_o} to {_locs::*}
             add 1 to {_j}
         add 1 to {_i}

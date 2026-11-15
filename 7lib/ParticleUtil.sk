@@ -63,10 +63,10 @@ function hfan(l: location, r: number, angle: number, p: color):
     set {_v} to vector from yaw {_l}'s yaw + {_h} and pitch {_l}'s pitch
     set {_v} to {_v} * {_r}
     set {_e2} to {_l} ~ {_v}
-    set {_pts::*} to ray({_l}, {_e1})
+    set {_pts::*} to ray({_l}, {_e1}, 0.5)
     loop {_pts::*}:
         make 1 of dust using dustOption({_p}, 2) at loop-value
-    set {_pts::*} to ray({_l}, {_e2})
+    set {_pts::*} to ray({_l}, {_e2}, 0.5)
     loop {_pts::*}:
         make 1 of dust using dustOption({_p}, 2) at loop-value
     set {_n} to floor({_angle} / {_s})
@@ -90,12 +90,12 @@ function rect(l: location, w: number, h: number, p: color):
     set {_c3} to {_c3} ~ {_nrv}
     set {_c4} to {_l} ~ {_nfv}
     set {_c4} to {_c4} ~ {_rv}
-    set {_pts::*} to ray({_c1}, {_c2})
-    set {_e::*} to ray({_c2}, {_c3})
+    set {_pts::*} to ray({_c1}, {_c2}, 0.5)
+    set {_e::*} to ray({_c2}, {_c3}, 0.5)
     add {_e::*} to {_pts::*}
-    set {_e::*} to ray({_c3}, {_c4})
+    set {_e::*} to ray({_c3}, {_c4}, 0.5)
     add {_e::*} to {_pts::*}
-    set {_e::*} to ray({_c4}, {_c1})
+    set {_e::*} to ray({_c4}, {_c1}, 0.5)
     add {_e::*} to {_pts::*}
     loop {_pts::*}:
         make 1 of dust using dustOption({_p}, 2) at loop-value

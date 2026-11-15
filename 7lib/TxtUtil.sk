@@ -120,4 +120,4 @@ function logging(t: objects):
     send "&7[%now%]&8 %{_t::*}%" to ops
     log "[%now%] %{_t::*}%" to file "debug.log"
     if {lib::webhook} is set:
-        send uncolored "`[%now%] %{_t::*}%`" as webhook to {lib::webhook}
+        send uncolored "`[%now%] %{_t::*}%`" as webhook to "%{lib::webhook}%"

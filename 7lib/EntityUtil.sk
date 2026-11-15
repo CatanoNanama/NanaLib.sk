@@ -50,7 +50,7 @@ function damageArrow(p: player,v: living entities,a: number):
 function itemEffects(p: potion effect type, tier: number=0, time: time span=0 tick) :: potion effect:
     return potion effect of {_p} {_tier} for {_time}
 
-function entities(p: player,l: location,r: number,target: entities=living entities, max: integer=size of Players,exclude: entities=teams({_p})) :: entities:
+function entities(p: player,l: location,r: number,target: entities=living entities, max: integer=size of Players,exclude: entities) :: entities:
     add teams({_p}) to {_exclude::*}
     add {_p} to {_exclude::*}
     add displays to {_exclude::*}

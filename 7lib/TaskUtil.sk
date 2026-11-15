@@ -23,7 +23,9 @@ every tick async:
         if {_now} >= {tasks::%{_task_id}%::maxtime}:
             set {_end} to true
         else:
-            set {_end} to evaluate "Nanatask_%{tasks::%{_task_id}%}%(""{_task_id}"")"
+            set {_f} to function named "Nanatask_%{tasks::%{_task_id}%}%"
+            if {_f} is set:
+                set {_end} to result of running {_f} with arguments {_task_id}
         if {tasks::%{_task_id}%::owner} is set:
             set {_ou} to {tasks::%{_task_id}%::owner} parsed as uuid
             if {_ou} is set:
@@ -33,7 +35,9 @@ every tick async:
                         set {_end} to true
         if {_end} is true:
             if {tasks::%{_task_id}%::end} is set:
-                set {_x} to evaluate "%{tasks::%{_task_id}%::end}%(""%{_task_id}%"")"
+                set {_f} to function named {tasks::%{_task_id}%::end}
+                if {_f} is set:
+                    run {_f} with arguments {_task_id}
             delete {tasks::%{_task_id}%}
             delete {tasks::%{_task_id}%::*}
 
@@ -51,6 +55,8 @@ function endTask(owner: text):
         set {_task_id} to loop-value
         if {tasks::%{_task_id}%::owner} is {_owner}:
             if {tasks::%{_task_id}%::end} is set:
-                set {_x} to evaluate "%{tasks::%{_task_id}%::end}%(""%{_task_id}%"")"
+                set {_f} to function named {tasks::%{_task_id}%::end}
+                if {_f} is set:
+                    run {_f} with arguments {_task_id}
             delete {tasks::%{_task_id}%}
             delete {tasks::%{_task_id}%::*}

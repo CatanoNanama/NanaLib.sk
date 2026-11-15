@@ -25,7 +25,7 @@ function reset(p: players, tp: boolean=false, clinv: boolean=false):
         reveal {_p} for all players
         set {_p}'s gravity to true
         reset velocity of {_p}
-        reset fall distance of {_p}
+        set fall distance of {_p} to 0
         reset {_p}'s walk speed
         loop indices of {bossbars::%{_p}%::*}:
             delbar({_p}, loop-value-2)
@@ -34,7 +34,7 @@ function reset(p: players, tp: boolean=false, clinv: boolean=false):
 function effects(target: players, p: potion effect type, tier: number=0, time: time span=0 tick):
     loop {_target::*}:
         set {_t} to loop-value
-        add potion effect of {_p} of tier {_tier} without particles for {_time} to potion effects of {_t}
+        add ambient potion effect of {_p} {_tier} for {_time} to potion effects of {_t}
 
 function enemys(p: player) :: players:
     if team of {_p} is not set:
@@ -81,7 +81,10 @@ on inventory click:
     set {select::%uuid of player%} to player(name of event-item)
     if {selecthandler::%uuid of player%} is set:
         set {_h} to {selecthandler::%uuid of player%}
-        parse effect "%{_h}%(player(""%uuid of player%""))" if {_h} is not ""
+        if {_h} is not "":
+            set {_f} to function named {_h}
+            if {_f} is set:
+                run {_f} with arguments player
     wait 1 tick
     close inventory for player
 
@@ -162,12 +165,12 @@ function setnum(p: player, key: text, v: number) :: number:
     set {setting::%uuid of {_p}%::%{_key}%} to {_v}
     return {_v}
 
-function clickmul() :: number:
-    if click type is left mouse button with shift:
+function clickmul(ct: click type) :: number:
+    if {_ct} is left mouse with shift:
         return 100
-    if click type is right mouse button with shift:
+    if {_ct} is right mouse button with shift:
         return 1000
-    if click type is right mouse button:
+    if {_ct} is right mouse button:
         return 10
     return 1
 
@@ -182,7 +185,7 @@ function settingsgui(p: player):
                 add gray dye named "%{_k}%" with lore booltext({_v}) to {_i::*}
         else if {setdef::%{_k}%::type} is "num":
             set {_v} to getset({_p}, {_k})
-            add paper named "%{_k}%" with lore "&f%{_v}%", "&7min %{setdef::%{_k}%::min}% / max %{setdef::%{_k}%::max}%" to {_i::*}
+            add paper named "%{_k}%" with lore "&f%{_v}%" and "&7min %{setdef::%{_k}%::min}% / max %{setdef::%{_k}%::max}%" to {_i::*}
         else if {setdef::%{_k}%::type} is "opt":
             set {_v} to getset({_p}, {_k})
             add paper named "%{_k}%" with lore "&f%{_v}%" to {_i::*}
@@ -198,7 +201,7 @@ on inventory click:
     if {setdef::%{_k}%::type} is "bool":
         setbool(player, {_k})
     else if {setdef::%{_k}%::type} is "num":
-        set {_m} to clickmul() * {setdef::%{_k}%::step}
+        set {_m} to clickmul(click type) * {setdef::%{_k}%::step}
         if click type is right mouse button:
             set {_m} to {_m} * -1
         if click type is right mouse button with shift:
@@ -247,7 +250,7 @@ function usemana(p: player, amount: number) :: boolean:
         play sound "block.fire.extinguish" to {_p} at {_p}
         send title "" with subtitle "&cMPが足りない" to {_p} for 10 tick with fadein 5 tick fadeout 5 tick
         return false
-    add -{_amount} to {stat::%uuid of {_p}%::mana}
+    remove {_amount} from {stat::%uuid of {_p}%::mana}
     return true
 
 function itemstats(i: item) :: objects:
@@ -294,7 +297,7 @@ function givebuff(p: player, id: text, duration: number=-1) :: boolean:
         set {_rule} to {buffdef::%{_id}%::opt::stack}
         if {_rule} is "max":
             set {_cur} to {buff::%uuid of {_p}%::%{_id}%}
-            if {_cur} is -1 or {_duration} is -1:
+            if {_cur} < 0 or {_duration} < 0:
                 set {_rem} to -1
             else:
                 set {_rem} to max({_cur}, {_duration})
@@ -323,7 +326,9 @@ function buffend(p: player, id: text, reason: text):
     loop {buff::%uuid of {_p}%::%{_id}%::stats::*}:
         delstatmod({_p}, loop-value, "buff:%{_id}%")
     if {buffdef::%{_id}%::opt::end} is true:
-        parse effect "%{_id}%_buffend(player(""uuid of {_p}%""), ""%{_reason}%"")"
+        set {_f} to function named "%{_id}%_buffend"
+        if {_f} is set:
+            run {_f} with arguments {_p} and {_reason}
     delete {buff::%uuid of {_p}%::%{_id}%::*}
     delete {buff::%uuid of {_p}%::%{_id}%}
 
@@ -335,7 +340,10 @@ function delbuff(p: player, id: text) :: boolean:
 
 function clearbuffs(p: player, kind: text=""):
     loop buffs({_p}):
-        if {_kind} is "" or {buffdef::%loop-value%::opt::kind} is {_kind}:
+        set {_bk} to {buffdef::%loop-value%::opt::kind}
+        if length of {_kind} is 0:
+            buffend({_p}, loop-value, "removed")
+        else if {_bk} is {_kind}:
             buffend({_p}, loop-value, "removed")
 
 function hasbuff(p: player, id: text) :: boolean:
@@ -393,7 +401,9 @@ function Nanatask_buff(id: text) :: boolean:
     if {_t} is set:
         if {buff::%{_u}%::%{_b}%} > 0:
             if mod({buff::%{_u}%::%{_b}%}, {_t}) is 0:
-                parse effect "%{_b}%_bufftick(player(""uuid of {_p}%""))"
+                set {_f} to function named "%{_b}%_bufftick"
+                if {_f} is set:
+                    run {_f} with arguments {_p}
     if {buff::%{_u}%::%{_b}%} <= 0:
         buffend({_p}, {_b}, "expired")
         return true

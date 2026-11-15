@@ -1,3 +1,4 @@
+using reflection
 function dnotice(p: player, title: text, body: text, handler: text=""):
     delete {dialog::%uuid of {_p}%::*}
     open notice dialog to {_p}:

@@ -1,3 +1,4 @@
+using reflection
 function r(n1: number, n2: number,int: boolean=true) :: number:
     return random integer between {_n1} to {_n2} if {_int} is true
     return random number between {_n1} to {_n2} if {_int} is false
@@ -130,7 +131,10 @@ function conedata(l: location, r: number, angle: number, step: number=0.5) :: lo
             set {_s} to {_j} * {_step}
             set {_k} to ceil({_r} / {_s})
             set {_mod} to mod({_i}, {_k})
-            if {_mod} is 0 or {_i} is {_n}:
+            if any:
+                {_mod} is 0
+                {_i} is {_n}
+            then:
                 add location at {_ox} + {_vx} * {_s}, {_oy} + {_vy} * {_s}, {_oz} + {_vz} * {_s} in world of {_o} to {_locs::*}
             add 1 to {_j}
         add 1 to {_i}

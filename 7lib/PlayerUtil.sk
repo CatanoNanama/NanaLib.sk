@@ -1,3 +1,4 @@
+using reflection
 function reset(p: players, tp: boolean=false, clinv: boolean=false):
     loop {_p::*}:
         set {_p} to loop-value
@@ -297,7 +298,10 @@ function givebuff(p: player, id: text, duration: number=-1) :: boolean:
         set {_rule} to {buffdef::%{_id}%::opt::stack}
         if {_rule} is "max":
             set {_cur} to {buff::%uuid of {_p}%::%{_id}%}
-            if {_cur} < 0 or {_duration} < 0:
+            if any:
+                {_cur} < 0
+                {_duration} < 0
+            then:
                 set {_rem} to -1
             else:
                 set {_rem} to max({_cur}, {_duration})

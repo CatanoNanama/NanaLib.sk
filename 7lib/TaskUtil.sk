@@ -1,3 +1,4 @@
+using reflection
 every tick async:
     loop indices of {timer::*}:
         add -1 to {timer::%loop-value%}

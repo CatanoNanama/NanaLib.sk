@@ -220,8 +220,15 @@ on inventory click:
     wait 1 tick
     settingsgui(player)
 
-function defstat(key: text, base: number):
+function defstat(key: text, base: number, name: text=""):
     set {statdef::%{_key}%::base} to {_base}
+    if {_name} is not "":
+        set {statdef::%{_key}%::name} to {_name}
+
+function statname(key: text) :: text:
+    if {statdef::%{_key}%::name} is set:
+        return {statdef::%{_key}%::name}
+    return {_key}
 
 function addstatmod(p: player, key: text, source: text, amount: number):
     if {statdef::%{_key}%::base} is not set:
@@ -269,7 +276,8 @@ function statlore(i: item) :: item:
             set {_k} to loop-value
         else:
             set {_v} to loop-value
-            add "&7%{_k}%: &f%signed({_v})%" to {_l::*}
+            set {_kn} to statname({_k})
+            add "&7%{_kn}%: &f%signed({_v})%" to {_l::*}
     set {_r} to {_i}
     set lore of {_r} to {_l::*}
     return {_r}

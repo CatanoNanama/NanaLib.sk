@@ -11,13 +11,14 @@ every tick async:
             else:
                 add -1 to {timer::%uuid of loop-value-1%::%loop-value-2%}
     loop indices of {textdisplay::*}:
-        set {_e} to entity from uuid(loop-value)
-        delete {textdisplay::%loop-value%} if {_e} is not alive
-        set {_d} to {textdisplay::%loop-value%}
-        unix timestamp of now - unix timestamp of {_d} >= 0
-        kill {_e}
-        {_e} is not alive
-        delete {textdisplay::%loop-value%}
+        set {_e} to {textdisplay::%loop-value%::e}
+        if {_e} is not set:
+            delete {textdisplay::%loop-value%::*}
+        else if {_e} is not alive:
+            delete {textdisplay::%loop-value%::*}
+        else if unix timestamp of now >= unix timestamp of {textdisplay::%loop-value%::until}:
+            kill {_e}
+            delete {textdisplay::%loop-value%::*}
     loop indices of {tasks::*}:
         set {_task_id} to loop-value
         set {_now} to unix timestamp of now

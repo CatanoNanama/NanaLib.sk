@@ -6,7 +6,8 @@ function txtDisplay(t: text, l: location, d: time span=20 tick, opa: number=-73)
     set billboard of {_e} to center
     make {_e} visible through walls
     make {_e} not persist
-    set {textdisplay::%uuid of {_e}%} to {_d} later
+    set {textdisplay::%uuid of {_e}%::e} to {_e}
+    set {textdisplay::%uuid of {_e}%::until} to {_d} later
     return {_e}
 
 function bossbar(p: player, id: text, title: text, v: integer=100, c: color=white) :: bossbar:

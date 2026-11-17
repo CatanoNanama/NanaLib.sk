@@ -17,23 +17,28 @@ every tick async:
         else if {_e} is not alive:
             delete {textdisplay::%loop-value%::*}
         else if unix timestamp of now >= unix timestamp of {textdisplay::%loop-value%::until}:
-            kill {_e}
+            run 0 tick later:
+                kill {_e}
             delete {textdisplay::%loop-value%::*}
     loop indices of {tasks::*}:
         set {_task_id} to loop-value
-        set {_now} to unix timestamp of now
-        if {_now} >= {tasks::%{_task_id}%::maxtime}:
+        set {_end} to false
+        set {_expired} to false
+        if {tasks::%{_task_id}%::maxtime} > 0:
+            if unix timestamp of now >= {tasks::%{_task_id}%::maxtime}:
+                set {_expired} to true
+        if {_expired} is true:
             set {_end} to true
         else:
             set {_f} to function named "Nanatask_%{tasks::%{_task_id}%}%"
             if {_f} is set:
                 set {_end} to result of running {_f} with arguments {_task_id}
         if {tasks::%{_task_id}%::owner} is set:
-            set {_ou} to {tasks::%{_task_id}%::owner} parsed as uuid
+            set {_ou} to {tasks::%{_task_id}%::owner}
             if {_ou} is set:
                 set {_op} to offlineplayer("%{_ou}%", false)
                 if {_op} is set:
-                    if player("%{_ou}%") is not set:
+                    if {_op} is not online:
                         set {_end} to true
         if {_end} is true:
             if {tasks::%{_task_id}%::end} is set:
@@ -43,13 +48,15 @@ every tick async:
             delete {tasks::%{_task_id}%}
             delete {tasks::%{_task_id}%::*}
 
-function startTask(task_name: text, d: timespan, unique_id: text="%random uuid%", owner: text="", end: text=""):
+function startTask(task_name: text, d: timespan, unique_id: text="%random uuid%", owner: object={none}, end: text={none}):
     set {tasks::%{_unique_id}%} to {_task_name}
     set {_expire_time} to {_d} later
     set {tasks::%{_unique_id}%::maxtime} to unix timestamp of {_expire_time}
-    if {_owner} is not "":
+    if {tasks::%{_unique_id}%::maxtime} <= 0:
+        set {tasks::%{_unique_id}%::maxtime} to 0
+    if {_owner} is set:
         set {tasks::%{_unique_id}%::owner} to {_owner}
-    if {_end} is not "":
+    if {_end} is set:
         set {tasks::%{_unique_id}%::end} to {_end}
 
 function endTask(owner: text):

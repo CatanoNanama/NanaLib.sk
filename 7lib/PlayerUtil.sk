@@ -220,10 +220,14 @@ on inventory click:
     wait 1 tick
     settingsgui(player)
 
-function defstat(key: text, base: number, name: text=""):
+function defstat(key: text, base: number, name: text="", format: text="", listed: boolean=true):
     set {statdef::%{_key}%::base} to {_base}
     if {_name} is not "":
         set {statdef::%{_key}%::name} to {_name}
+    set {statdef::%{_key}%::format} to {_format}
+    set {statdef::%{_key}%::listed} to {_listed}
+    if {statdef::order::*} does not contain {_key}:
+        add {_key} to {statdef::order::*}
 
 function statname(key: text) :: text:
     if {statdef::%{_key}%::name} is set:

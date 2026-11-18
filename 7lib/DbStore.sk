@@ -1,0 +1,35 @@
+using type hints
+
+function blobset(blob: text, key: text, value: object) :: text:
+    set {_out::*} to {_none}
+    if {_blob} is set:
+        if {_blob} is not "":
+            set {_pairs::*} to {_blob} split at ";"
+            loop {_pairs::*}:
+                set {_kv::*} to loop-value split at "="
+                if {_kv::1} is not {_key}:
+                    add loop-value to {_out::*}
+    add "%{_key}%=%{_value}%" to {_out::*}
+    return join {_out::*} with ";"
+
+function blobget(blob: text, key: text) :: text:
+    if {_blob} is not set:
+        return ""
+    if {_blob} is "":
+        return ""
+    set {_pairs::*} to {_blob} split at ";"
+    loop {_pairs::*}:
+        set {_kv::*} to loop-value split at "="
+        if {_kv::1} is {_key}:
+            return {_kv::2}
+    return ""
+
+function blobkeys(blob: text) :: texts:
+    set {_r::*} to {_none}
+    if {_blob} is set:
+        if {_blob} is not "":
+            set {_pairs::*} to {_blob} split at ";"
+            loop {_pairs::*}:
+                set {_kv::*} to loop-value split at "="
+                add {_kv::1} to {_r::*}
+    return {_r::*}
